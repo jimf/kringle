@@ -1,6 +1,6 @@
 # kringle
 
-A toy programming language, specifically for solving Advent of Code puzzles.
+A toy programming language, specifically for solving [Advent of Code][] puzzles.
 
 _Work in progress_
 
@@ -99,6 +99,7 @@ finally decided I needed to get it into actual code.
 
 MIT
 
+[Advent of Code]: https://adventofcode.com/
 [npm]: https://www.npmjs.org/package/kringle
 [Python]: https://www.python.org/
 [Nim]: https://nim-lang.org/
