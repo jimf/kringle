@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+/* eslint no-console:0 */
+
+const cli = require('../src/cli')
+
+cli(process.argv)
+  .then(() => { process.exit(0) })
+  .catch(() => { process.exit(1) })
