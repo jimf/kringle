@@ -8,7 +8,7 @@ _Work in progress_
 
 The __kringle__ compiler is both written in JavaScript, and compiles kringle
 programs to JavaScript. As such, a recent (version 8+) version of Node.js is
-required. To run the compiler, first install it and it's dependencies:
+required. To run the compiler, first install it and its dependencies:
 
 __npm__:
 
@@ -84,8 +84,8 @@ for line in lines(input):
 print('Average line length (A): {}' % (total / count))
 ```
 
-See the [examples][] directory for many more example programs. To read more
-about the language, see [docs/language.md][]
+See the [examples/](examples) directory for many more example programs. To read more
+about the language, see [docs/language.md](docs/language.md).
 
 ## Motivation
 
