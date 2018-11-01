@@ -1,2 +1,3 @@
-module.exports = `
-let Inf = Infinity`
+exports.requires = []
+
+exports.definition = `let Inf = Infinity\n`

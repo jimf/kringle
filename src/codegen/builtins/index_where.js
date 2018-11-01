@@ -1,7 +1,10 @@
-module.exports = `
-const indexWhere = f => xs => {
-  for (let i = 0, len = xs.length; i < len; i += 1) {
-    if (f(xs[i])) {
+exports.requires = []
+
+exports.definition = `
+let indexWhere = f => xs => {
+  let i = 0
+  for (const x of xs) {
+    if (f(x)) {
       return i
     }
   }

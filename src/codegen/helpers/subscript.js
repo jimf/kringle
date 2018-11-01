@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 const $subscript = (xs, start, end) => {
   if (start < 0) { start = xs.length + start }
   if (end == null) {
@@ -6,5 +8,5 @@ const $subscript = (xs, start, end) => {
   } else if (end < 0) {
     end = xs.length + end
   }
-  return xs.substring(start, end + 1)
+  return xs.slice(start, end + 1)
 }`

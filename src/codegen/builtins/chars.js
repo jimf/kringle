@@ -1,2 +1,4 @@
-module.exports = `
-const chars = s => s.split('')`
+exports.requires = []
+
+exports.definition = `
+let chars = s => s.split('')`

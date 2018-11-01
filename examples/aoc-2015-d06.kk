@@ -301,4 +301,29 @@ toggle 580,592 through 671,900
 toggle 296,687 through 906,775
 """
 
-# in progress
+fn partsToTuple(parts):
+  (action, x1, y1, x2, y2) = parts
+  (action, int(x1), int(y1), int(x2), int(y2))
+
+fn parseLine(line):
+  line
+    |> captures(r'(toggle|turn on|turn off) (\d+),(\d+) through (\d+),(\d+)')
+    |> partsToTuple
+
+#parseLine = captures(r'(toggle|turn on|turn off) (\d+),(\d+) through (\d+),(\d+)')
+#  >> partsToTuple
+
+grid = [[0] * 1000] * 1000
+for line in lines(input):
+  (action, x1, y1, x2, y2) = parseLine(line)
+  for col in x1..x2:
+    for row in y1..y2:
+      if action == 'turn on':
+        grid[row][col] = 1
+      elif action == 'turn off':
+        grid[row][col] = 0
+      else:
+        grid[row][col] ^= 1
+
+lightsOn = map(sum, grid)
+print(lightsOn)

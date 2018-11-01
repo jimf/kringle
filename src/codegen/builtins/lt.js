@@ -1,2 +1,3 @@
-module.exports = `
-const lt = x => y => y < x`
+exports.requires = []
+exports.definition = `
+let lt = x => y => y < x`

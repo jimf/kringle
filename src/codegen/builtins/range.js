@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 let range = start => end => {
   return function* (step) {
     let n = start

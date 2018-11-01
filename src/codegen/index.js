@@ -2,6 +2,9 @@ const { builtins, isBuiltin } = require('./builtins')
 const data = require('./data')
 const helpers = require('./helpers')
 const Scope = require('../scope')
+const tsort = require('./tsort')
+
+const lib = { builtins, data, helpers }
 
 const astTraverse = (v, node, parent = null, parentKey = null) => {
   if (v[node.type]) {
@@ -25,33 +28,57 @@ const astTraverse = (v, node, parent = null, parentKey = null) => {
 }
 
 function getDependencies (ast) {
-  const deps = new Set([])
+  const deps = { source: new Set([]) }
+  const appendDepsFor = dep => {
+    if (deps[dep]) { return }
+    const [category, name] = dep.split('/')
+    if (category === 'nodejs') { return }
+    const def = lib[category][name]
+    deps[dep] = def.requires
+    lib[category][name].requires.forEach(appendDepsFor)
+  }
+  const addDep = dep => {
+    if (!deps.source.has(dep)) {
+      deps.source.add(dep)
+      appendDepsFor(dep)
+    }
+  }
   astTraverse({
-    AssertStmt () { deps.add('assert') },
+    AssertStmt () { addDep('helpers/$assert') },
     BinaryOp (node) {
       if (node.operator.type === 'EqEq') {
-        deps.add('isEqual')
+        addDep('helpers/$isEqual')
       } else if (node.operator.type === 'Eq' && node.left.type === 'Subscript' && node.left.value === null) {
-        deps.add('push')
+        addDep('helpers/$push')
+      } else if (node.operator.type !== 'EqEq' && node.operator.type.endsWith('Eq') && node.left.type === 'Subscript') {
+        addDep('helpers/$setSubscript')
       }
     },
     Identifier (node) {
       if (isBuiltin(node.lexeme)) {
-        deps.add(node.lexeme)
+        addDep(`builtins/${node.lexeme}`)
       }
     },
-    Mod () { deps.add('opmod') },
-    Set () { deps.add('Set') },
+    Mod () { addDep('helpers/$opMod') },
+    Set () { addDep('data/Set') },
+    Star () { addDep('helpers/$opStar') },
     Subscript (node) {
       if (node.value !== null) {
-        deps.add('subscript')
+        addDep('helpers/$subscript')
       }
     },
     Tuple () {
-      deps.add('Tuple')
+      addDep('data/Tuple')
     }
   }, ast)
-  return [...deps]
+  return tsort(deps, true)
+    .filter(dep => dep !== 'source')
+    .map((dep) => {
+      const [category, name] = dep.split('/')
+      if (category === 'nodejs') { return `const $${name} = require('${name}')` }
+      return lib[category][name].definition.trim()
+    })
+    .join('\n')
 }
 
 function annotateVarDecls (ast) {
@@ -83,6 +110,22 @@ function annotateVarDecls (ast) {
   return ast
 }
 
+function annotateAssignments (ast) {
+  astTraverse({
+    BinaryOp (node) {
+      if (node.operator.type !== 'EqEq' && node.operator.type.endsWith('Eq')) {
+        node.isAssignment = true
+      }
+    },
+    Subscript (node, parent) {
+      if (parent && parent.isAssignment) {
+        node.isAssignment = true
+      }
+    }
+  }, ast)
+  return ast
+}
+
 function transformRanges (ast) {
   astTraverse({
     BinaryOpExit (node, parent, key) {
@@ -107,9 +150,8 @@ const uid = () => {
 function codegen (node) {
   switch (node.type) {
     case 'Program': {
-      const deps = getDependencies(node).map((dep) => builtins[dep] || helpers[dep] || data[dep]).join('\n')
       return `#!/usr/bin/env node
-${deps}
+${getDependencies(node)}
 ${node.body.map(codegen).join('\n')}
 `
     }
@@ -159,11 +201,19 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
 
     case 'ExprList': return node.expressions.map(codegen).join(', ')
     case 'IfExpr': return `(${codegen(node.condition)} ? ${codegen(node.expr1)} : ${codegen(node.expr2)})`
-    case 'Subscript': return `$subscript(${codegen(node.callee)}, ${codegen(node.value)})`
+    case 'Subscript': {
+      // console.log(node);
+      // if (node.isAssignment) {
+      //   return `${codegen(node.callee)}, ${codegen(node.value)}`
+      // }
+      return `$subscript(${codegen(node.callee)}, ${codegen(node.value)})`
+    }
 
     case 'BinaryOp': {
       if (node.operator.type === 'Mod') {
         return `$opMod(${codegen(node.left)}, ${codegen(node.right)})`
+      } else if (node.operator.type === 'Star') {
+        return `$opStar(${codegen(node.left)}, ${codegen(node.right)})`
       } else if (node.operator.type === 'EqEq') {
         return `$isEqual(${codegen(node.left)}, ${codegen(node.right)})`
       } else if (node.operator.type === 'DotDot') {
@@ -187,6 +237,12 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
         }).join('\n')
       } else if (node.operator.type === 'Eq' && node.left.type === 'Subscript' && node.left.value === null) {
         return `$push(${codegen(node.left.callee)}, ${codegen(node.right)})`
+      } else if (node.operator.type.endsWith('Eq') && node.left.type === 'Subscript') {
+        const id = uid()
+        return `let $tmp${id} = ${codegen(Object.assign({}, node.left, { isAssignment: false }))}
+$tmp${id} ${codegen(node.operator)} ${codegen(node.right)}
+$setSubscript($tmp${id}, ${codegen(node.left).slice(11, -1)})
+`
       }
       return `${codegen(node.left)} ${codegen(node.operator)} ${codegen(node.right)}`
     }
@@ -200,6 +256,7 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
     // Operators
     case 'AmpAmp':
     case 'Bang':
+    case 'CaretEq':
     case 'Eq':
     case 'Greater':
     case 'GreaterEq':
@@ -209,7 +266,6 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
     case 'Plus':
     case 'PlusEq':
     case 'Slash':
-    case 'Star':
       return node.lexeme
 
     // Data structures
@@ -227,4 +283,4 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
   }
 }
 
-module.exports = (ast) => codegen(annotateVarDecls(transformRanges(ast)))
+module.exports = (ast) => codegen(annotateVarDecls(annotateAssignments(transformRanges(ast))))

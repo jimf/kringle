@@ -1,4 +1,6 @@
-module.exports = `
-const print = x => {
+exports.requires = []
+
+exports.definition = `
+let print = x => {
   console.log(x.toString())
 }`

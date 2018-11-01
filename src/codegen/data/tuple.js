@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 function $KringleTuple (values) {
   if (!(this instanceof $KringleTuple)) { return new $KringleTuple(values) }
   this.values = values || []

@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 const $isEqual = (a, b) => {
   if (a === b) {
     return true

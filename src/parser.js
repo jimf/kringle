@@ -323,7 +323,7 @@ ${errorContext}
 
   function assignment () {
     let expr = range()
-    if (match('PlusEq') || match('QuestionEq')) {
+    if (match('PlusEq') || match('QuestionEq') || match('CaretEq')) {
       const op = previous()
       const right = range()
       return {

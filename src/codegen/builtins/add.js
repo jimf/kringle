@@ -1,2 +1,4 @@
-module.exports = `
-const add = x => y => x + y`
+exports.requires = ['helpers/$concat']
+
+exports.definition = `
+let add = x => y => $concat(x, y)`

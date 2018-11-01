@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 let int = x => {
   const result = parseInt(x, 10)
   if (isNaN(result)) {

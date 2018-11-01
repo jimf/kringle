@@ -1,2 +1,4 @@
-module.exports = `
-const str = x => String(x)`
+exports.requires = []
+
+exports.definition = `
+let str = x => String(x)`

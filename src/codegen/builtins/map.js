@@ -1,2 +1,3 @@
-module.exports = `
-const map = f => xs => xs.map(x => f(x))`
+exports.requires = ['helpers/$map']
+exports.definition = `
+let map = f => xs => $map(f, xs)`

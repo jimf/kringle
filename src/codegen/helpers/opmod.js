@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 const $opMod = (left, right) => {
   if (typeof left === 'string') {
     if (!Array.isArray(right)) {

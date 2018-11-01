@@ -327,6 +327,7 @@ ${errorContext}
       case '!': return createToken(match('=') ? 'BangEq' : 'Bang')
       case '=': return createToken(match('=') ? 'EqEq' : 'Eq')
       case '&': return match('&') ? createToken('AmpAmp') : kringleScanError()
+      case '^': return createToken(match('=') ? 'CaretEq' : 'Caret')
       case 'Ø': return createToken('Theta')
       case 'r': return match("'") ? scanRawString() : scanIdentifier()
 

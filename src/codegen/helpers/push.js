@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 const $push = (xs, x) => {
   if (typeof xs.push === 'function') {
     xs.push(x)

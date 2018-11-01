@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 let captures = p => s => {
   const pat = new RegExp(p)
   const matches = s.match(pat)

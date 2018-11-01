@@ -1,2 +1,3 @@
-module.exports = `
-const inc = x => x + 1`
+exports.requires = []
+exports.definition = `
+let inc = x => x + 1`

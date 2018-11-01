@@ -1,4 +1,6 @@
-module.exports = `
+exports.requires = []
+
+exports.definition = `
 function $KringleSet() {
   if (!(this instanceof $KringleSet)) {
     return new $KringleSet()

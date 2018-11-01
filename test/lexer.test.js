@@ -54,7 +54,9 @@ describe('Lexer', () => {
     { lexeme: '>', expectedType: 'Greater' },
     { lexeme: '>=', expectedType: 'GreaterEq' },
     { lexeme: '!=', expectedType: 'BangEq' },
-    { lexeme: '|>', expectedType: 'PipeGreater' }
+    { lexeme: '|>', expectedType: 'PipeGreater' },
+    { lexeme: '^', expectedType: 'Caret' },
+    { lexeme: '^=', expectedType: 'CaretEq' }
   ].forEach(({ lexeme, expectedType }) => {
     it(`should tokenize '${lexeme}' operator`, () => {
       expect(tokenize(lexeme)).toEqual([{

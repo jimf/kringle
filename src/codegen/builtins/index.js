@@ -19,7 +19,8 @@ const builtins = {
   range: require('./range'),
   scanl: require('./scanl'),
   split: require('./split'),
-  str: require('./str')
+  str: require('./str'),
+  sum: require('./sum')
 }
 
 const builtinsIdx = Object.keys(builtins).reduce((acc, name) => {
