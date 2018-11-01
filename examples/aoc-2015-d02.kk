@@ -1004,7 +1004,7 @@ input = """
 a = 0
 b = 0
 for line in lines(input):
-  (l, w, h) = split('x', line) |> map(str)
+  (l, w, h) = split('x', line) |> map(int)
   area = 2*l*w + 2*w*h + 2*h*l
   slack = min([l*w, w*h, h*l])
   ribbon = 2 * min([l+w, w+h, h+l])
