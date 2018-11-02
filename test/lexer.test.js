@@ -44,17 +44,24 @@ describe('Lexer', () => {
     { lexeme: '..', expectedType: 'DotDot' },
     { lexeme: '=', expectedType: 'Eq' },
     { lexeme: '==', expectedType: 'EqEq' },
+    { lexeme: '|', expectedType: 'Pipe' },
     { lexeme: '||', expectedType: 'PipePipe' },
+    { lexeme: '&', expectedType: 'Amp' },
     { lexeme: '&&', expectedType: 'AmpAmp' },
     { lexeme: '?', expectedType: 'Question' },
     { lexeme: '?=', expectedType: 'QuestionEq' },
     { lexeme: '%', expectedType: 'Mod' },
     { lexeme: '<', expectedType: 'Less' },
     { lexeme: '<=', expectedType: 'LessEq' },
+    { lexeme: '<<', expectedType: 'LessLess' },
+    { lexeme: '<<<', expectedType: 'LessLessLess' },
     { lexeme: '>', expectedType: 'Greater' },
     { lexeme: '>=', expectedType: 'GreaterEq' },
+    { lexeme: '>>', expectedType: 'GreaterGreater' },
+    { lexeme: '>>>', expectedType: 'GreaterGreaterGreater' },
     { lexeme: '!=', expectedType: 'BangEq' },
     { lexeme: '|>', expectedType: 'PipeGreater' },
+    { lexeme: '~', expectedType: 'Tilde' },
     { lexeme: '^', expectedType: 'Caret' },
     { lexeme: '^=', expectedType: 'CaretEq' }
   ].forEach(({ lexeme, expectedType }) => {
@@ -72,6 +79,7 @@ describe('Lexer', () => {
 
   it('should tokenize numbers', () => {
     const cases = [
+      { lexeme: '0', expectedType: 'Integer', expectedValue: 0 },
       { lexeme: '3', expectedType: 'Integer', expectedValue: 3 },
       { lexeme: '42', expectedType: 'Integer', expectedValue: 42 },
       { lexeme: '000000042', expectedType: 'Integer', expectedValue: 42 },
@@ -89,7 +97,10 @@ describe('Lexer', () => {
       { lexeme: '1.5e-3', expectedType: 'Real', expectedValue: 1.5e-3 },
       { lexeme: '1.5E-3', expectedType: 'Real', expectedValue: 1.5e-3 },
       { lexeme: '1.5e+3', expectedType: 'Real', expectedValue: 1.5e3 },
-      { lexeme: '1.5E+3', expectedType: 'Real', expectedValue: 1.5e3 }
+      { lexeme: '1.5E+3', expectedType: 'Real', expectedValue: 1.5e3 },
+      { lexeme: '0xFF', expectedType: 'Integer', expectedValue: 0xFF },
+      { lexeme: '0xccff', expectedType: 'Integer', expectedValue: 0xccff },
+      { lexeme: '0XABCDEF', expectedType: 'Integer', expectedValue: 0XABCDEF }
     ]
     cases.forEach(({ lexeme, expectedType, expectedValue }) => {
       expect(tokenize(lexeme)).toEqual([{
@@ -130,7 +141,7 @@ describe('Lexer', () => {
 
   it('should tokenize reserved words', () => {
     const reserved = [
-      'assert', 'break', 'case', 'elif', 'else', 'fn', 'for', 'if', 'in', 'return', 'then'
+      'assert', 'break', 'case', 'elif', 'else', 'fn', 'for', 'if', 'in', 'notin', 'return', 'then'
     ]
     reserved.forEach((word) => {
       expect(tokenize(word)).toEqual([{

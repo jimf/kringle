@@ -93,6 +93,14 @@ ${errorContext}
         type: 'List',
         items
       }
+    } else if (match('LBrace')) {
+      if (match('RBrace')) {
+        return {
+          type: 'Dict',
+          pairs: []
+        }
+      }
+      expect(false, 'non-empty brances not implemented')
     } else if (match('Theta')) {
       return {
         type: 'Set',
@@ -133,8 +141,23 @@ ${errorContext}
     return expr
   }
 
+  function composition () {
+    let expr = call()
+    if (match('GreaterGreater') || match('LessLess')) {
+      const operator = previous()
+      const right = call()
+      return {
+        type: 'BinaryOp',
+        operator,
+        left: expr,
+        right
+      }
+    }
+    return expr
+  }
+
   function existential () {
-    const expr = call()
+    const expr = composition()
     if (match('Question')) {
       const operator = previous()
       return {
@@ -155,7 +178,8 @@ ${errorContext}
     } else if (
       match('Plus') ||
       match('Minus') ||
-      match('Bang')
+      match('Bang') ||
+      match('Tilde')
     ) {
       const op = previous()
       const callee = unary()
@@ -224,9 +248,12 @@ ${errorContext}
     return expr
   }
 
-  function concatenation () {
+  function shift () {
     let expr = addition()
-    while (match('PlusPlus')) {
+    while (
+      match('GreaterGreaterGreater') ||
+      match('LessLessLess')
+    ) {
       const op = previous()
       const right = addition()
       expr = {
@@ -239,18 +266,37 @@ ${errorContext}
     return expr
   }
 
+  function bitwise () {
+    let expr = shift()
+    while (
+      match('Amp') ||
+      match('Pipe')
+    ) {
+      const op = previous()
+      const right = shift()
+      expr = {
+        type: 'BinaryOp',
+        operator: op,
+        left: expr,
+        right
+      }
+    }
+    return expr
+  }
+
   function comparison () {
-    let expr = concatenation()
+    let expr = bitwise()
     while (
       match('EqEq') ||
       match('BangEq') ||
       match('Less') ||
       match('LessEq') ||
       match('GreaterEq') ||
-      match('Greater')
+      match('Greater') ||
+      match('ReservedWord', 'notin')
     ) {
       const op = previous()
-      const right = concatenation()
+      const right = bitwise()
       expr = {
         type: 'BinaryOp',
         operator: op,

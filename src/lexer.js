@@ -10,6 +10,7 @@ const RESERVED_WORDS = [
   'for',
   'if',
   'in',
+  'notin',
   'return',
   'then'
 ].reduce((acc, word) => {
@@ -35,12 +36,15 @@ const isAlpha = c => isUpper(c) || isLower(c)
 const isAlphaNumeric = c => isDigit(c) || isAlpha(c)
 
 const NUM_INTEGER = 1
-const NUM_WITH_DEC_BEGIN = 2
-const NUM_WITH_DEC = 4
-const NUM_BEGIN_WITH_EXP = 8
-const NUM_BEGIN_WITH_SIGNED_EXP = 16
-const NUM_WITH_EXP = 32
-const NUM_DONE = 64
+const NUM_ZERO = 2
+const NUM_WITH_DEC_BEGIN = 4
+const NUM_WITH_DEC = 8
+const NUM_BEGIN_WITH_EXP = 16
+const NUM_BEGIN_WITH_SIGNED_EXP = 32
+const NUM_WITH_EXP = 64
+const NUM_BEGIN_HEX = 128
+const NUM_HEX = 256
+const NUM_DONE = 512
 
 const parseNumber = (state, c) => {
   switch (state) {
@@ -71,6 +75,18 @@ const parseNumber = (state, c) => {
         case c === '-' || c === '+': return NUM_BEGIN_WITH_SIGNED_EXP
         default: return NUM_DONE
       }
+
+    case NUM_ZERO:
+      switch (true) {
+        case c === 'x' || c === 'X': return NUM_BEGIN_HEX
+        case c === '.': return NUM_WITH_DEC_BEGIN
+        case isDigit(c): return NUM_INTEGER
+        default: return NUM_DONE
+      }
+
+    case NUM_BEGIN_HEX:
+    case NUM_HEX:
+      return isHex(c) ? NUM_HEX : NUM_DONE
 
     case NUM_BEGIN_WITH_SIGNED_EXP:
     case NUM_WITH_EXP:
@@ -206,6 +222,7 @@ ${errorContext}
   function scanNumber (first) {
     let prevState = null
     let state = first === '.' ? NUM_WITH_DEC : NUM_INTEGER
+    if (first === '0') { state = NUM_ZERO }
     while (true) {
       prevState = state
       state = parseNumber(state, peek)
@@ -214,10 +231,12 @@ ${errorContext}
       }
       read()
     }
-    if (prevState === NUM_INTEGER) {
+    if (prevState === NUM_INTEGER || prevState === NUM_ZERO) {
       return createToken('Integer', t => parseInt(t, 10))
     } else if (prevState === NUM_WITH_DEC || prevState === NUM_WITH_EXP) {
       return createToken('Real', parseFloat)
+    } else if (prevState === NUM_HEX) {
+      return createToken('Integer', t => parseInt(t, 16))
     } else if (prevState === NUM_WITH_DEC_BEGIN) {
       current -= 1
       col -= 1
@@ -322,14 +341,23 @@ ${errorContext}
       case '\\': return createToken('Backslash')
       case "'": return scanString("'")
       case '"': return match('"') && match('"') ? scanMultilineString() : kringleScanError()
-      case '>': return createToken(match('=') ? 'GreaterEq' : 'Greater')
-      case '<': return createToken(match('=') ? 'LessEq' : 'Less')
       case '!': return createToken(match('=') ? 'BangEq' : 'Bang')
       case '=': return createToken(match('=') ? 'EqEq' : 'Eq')
-      case '&': return match('&') ? createToken('AmpAmp') : kringleScanError()
+      case '&': return createToken(match('&') ? 'AmpAmp' : 'Amp')
       case '^': return createToken(match('=') ? 'CaretEq' : 'Caret')
       case 'Ø': return createToken('Theta')
       case 'r': return match("'") ? scanRawString() : scanIdentifier()
+      case '~': return createToken('Tilde')
+
+      case '>':
+        if (match('=')) { return createToken('GreaterEq') }
+        if (match('>')) { return createToken(match('>') ? 'GreaterGreaterGreater' : 'GreaterGreater') }
+        return createToken('Greater')
+
+      case '<':
+        if (match('=')) { return createToken('LessEq') }
+        if (match('<')) { return createToken(match('<') ? 'LessLessLess' : 'LessLess') }
+        return createToken('Less')
 
       case '.':
         if (match('.')) { return createToken('DotDot') }
@@ -337,7 +365,7 @@ ${errorContext}
 
       case '|':
         if (match('|')) { return createToken('PipePipe') }
-        return match('>') ? createToken('PipeGreater') : kringleScanError()
+        return createToken(match('>') ? 'PipeGreater' : 'Pipe')
 
       case '#':
         skipToEol()

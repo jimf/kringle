@@ -50,7 +50,7 @@ __kringle__ is...
 
 ## Design Goals
 
-- **Expressive**: Most AoC problems should be solvable in 15 lines of kringle
+- **Expressive**: Most AoC problems should be solvable in 20 lines of kringle
   code or fewer (sans input/output). More code than this should be an outlier.
 - **Readable**: I don't like the word "readable" in a programming context,
   because often that is just a standin for _familiar to me_. That said, I'm

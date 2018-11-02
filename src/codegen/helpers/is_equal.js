@@ -1,4 +1,4 @@
-exports.requires = []
+exports.requires = ['helpers/$has']
 
 exports.definition = `
 const $isEqual = (a, b) => {
@@ -9,7 +9,7 @@ const $isEqual = (a, b) => {
   } else if (typeof a === 'object' && a != null && typeof b === 'object' && b != null) {
     if (Object.keys(a).length !== Object.keys(b).length) { return false }
     for (let k in a) {
-      if (Object.prototype.hasOwnProperty.call(a, k)) {
+      if ($has(a, k)) {
         if (!Object.prototype.hasOwnProperty.call(b, k) || !$isEqual(a[k], b[k])) {
           return false
         }

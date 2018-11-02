@@ -52,8 +52,15 @@ function getDependencies (ast) {
         addDep('helpers/$push')
       } else if (node.operator.type !== 'EqEq' && node.operator.type.endsWith('Eq') && node.left.type === 'Subscript') {
         addDep('helpers/$setSubscript')
+      } else if (node.operator.type === 'GreaterGreater') {
+        addDep('helpers/$pipe')
+      } else if (node.operator.type === 'LessLess') {
+        addDep('helpers/$compose')
+      } else if (node.operator.type === 'ReservedWord' && node.operator.lexeme === 'notin') {
+        addDep('helpers/$contains')
       }
     },
+    Dict () { addDep('data/Dict') },
     Identifier (node) {
       if (isBuiltin(node.lexeme)) {
         addDep(`builtins/${node.lexeme}`)
@@ -95,6 +102,8 @@ function annotateVarDecls (ast) {
     FnStmtExit () { scope.pop() },
     ForStmt () { scope = Scope(scope) },
     ForStmtExit () { scope.pop() },
+    // IfStmt () { scope = Scope(scope) },
+    // IfStmtExit () { scope.pop() },
     BinaryOp (node) {
       if (node.operator.type === 'Eq') {
         if (node.left.type === 'Identifier') {
@@ -104,22 +113,6 @@ function annotateVarDecls (ast) {
             checkNode(expr)
           })
         }
-      }
-    }
-  }, ast)
-  return ast
-}
-
-function annotateAssignments (ast) {
-  astTraverse({
-    BinaryOp (node) {
-      if (node.operator.type !== 'EqEq' && node.operator.type.endsWith('Eq')) {
-        node.isAssignment = true
-      }
-    },
-    Subscript (node, parent) {
-      if (parent && parent.isAssignment) {
-        node.isAssignment = true
       }
     }
   }, ast)
@@ -202,10 +195,6 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
     case 'ExprList': return node.expressions.map(codegen).join(', ')
     case 'IfExpr': return `(${codegen(node.condition)} ? ${codegen(node.expr1)} : ${codegen(node.expr2)})`
     case 'Subscript': {
-      // console.log(node);
-      // if (node.isAssignment) {
-      //   return `${codegen(node.callee)}, ${codegen(node.value)}`
-      // }
       return `$subscript(${codegen(node.callee)}, ${codegen(node.value)})`
     }
 
@@ -216,6 +205,10 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
         return `$opStar(${codegen(node.left)}, ${codegen(node.right)})`
       } else if (node.operator.type === 'EqEq') {
         return `$isEqual(${codegen(node.left)}, ${codegen(node.right)})`
+      } else if (node.operator.type === 'GreaterGreater') {
+        return `$pipe(${codegen(node.left)}, ${codegen(node.right)})`
+      } else if (node.operator.type === 'LessLess') {
+        return `$compose(${codegen(node.left)}, ${codegen(node.right)})`
       } else if (node.operator.type === 'DotDot') {
         return `${codegen(node.left)}, ${codegen(node.right)}`
       } else if (node.operator.type === 'QuestionEq') {
@@ -237,12 +230,16 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
         }).join('\n')
       } else if (node.operator.type === 'Eq' && node.left.type === 'Subscript' && node.left.value === null) {
         return `$push(${codegen(node.left.callee)}, ${codegen(node.right)})`
+      } else if (node.operator.type === 'Eq' && node.left.type === 'Subscript') {
+        return `$setSubscript(${codegen(node.right)}, ${codegen(node.left).slice(11, -1)})`
       } else if (node.operator.type.endsWith('Eq') && node.left.type === 'Subscript') {
         const id = uid()
-        return `let $tmp${id} = ${codegen(Object.assign({}, node.left, { isAssignment: false }))}
+        return `let $tmp${id} = ${codegen(node.left)}
 $tmp${id} ${codegen(node.operator)} ${codegen(node.right)}
 $setSubscript($tmp${id}, ${codegen(node.left).slice(11, -1)})
 `
+      } else if (node.operator.type === 'ReservedWord' && node.operator.lexeme === 'notin') {
+        return `!$contains(${codegen(node.right)}, ${codegen(node.left)})`
       }
       return `${codegen(node.left)} ${codegen(node.operator)} ${codegen(node.right)}`
     }
@@ -254,8 +251,10 @@ $setSubscript($tmp${id}, ${codegen(node.left).slice(11, -1)})
       return codegen(node.operator) + codegen(node.callee)
 
     // Operators
+    case 'Amp':
     case 'AmpAmp':
     case 'Bang':
+    case 'Caret':
     case 'CaretEq':
     case 'Eq':
     case 'Greater':
@@ -263,12 +262,19 @@ $setSubscript($tmp${id}, ${codegen(node.left).slice(11, -1)})
     case 'Less':
     case 'LessEq':
     case 'Minus':
+    case 'Pipe':
+    case 'PipePipe':
     case 'Plus':
     case 'PlusEq':
     case 'Slash':
+    case 'Tilde':
       return node.lexeme
 
+    case 'GreaterGreaterGreater': return '>>'
+    case 'LessLessLess': return '<<'
+
     // Data structures
+    case 'Dict': return `$KringleDict()`
     case 'List': return `[${node.items.map(codegen).join(', ')}]`
     case 'Set': return `$KringleSet(${node.members.map(codegen).join(', ')})`
     case 'Tuple': return `$KringleTuple([${node.items.map(codegen).join(', ')}])`
@@ -276,6 +282,7 @@ $setSubscript($tmp${id}, ${codegen(node.left).slice(11, -1)})
     // Primaries
     case 'Identifier': return node.isInitialization ? `let ${node.lexeme}` : node.lexeme
     case 'Integer': return String(node.value)
+    case 'Real': return String(node.value)
     case 'String': return JSON.stringify(node.value)
     case 'Boolean': return node.lexeme
     case 'Null': return node.lexeme
@@ -283,4 +290,4 @@ $setSubscript($tmp${id}, ${codegen(node.left).slice(11, -1)})
   }
 }
 
-module.exports = (ast) => codegen(annotateVarDecls(annotateAssignments(transformRanges(ast))))
+module.exports = (ast) => codegen(annotateVarDecls(transformRanges(ast)))

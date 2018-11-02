@@ -2,5 +2,5 @@ exports.requires = []
 
 exports.definition = `
 let print = x => {
-  console.log(x.toString())
+  console.log(String(x))
 }`

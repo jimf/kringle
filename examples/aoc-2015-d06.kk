@@ -305,25 +305,31 @@ fn partsToTuple(parts):
   (action, x1, y1, x2, y2) = parts
   (action, int(x1), int(y1), int(x2), int(y2))
 
-fn parseLine(line):
-  line
-    |> captures(r'(toggle|turn on|turn off) (\d+),(\d+) through (\d+),(\d+)')
-    |> partsToTuple
+parseLine = captures(r'(toggle|turn on|turn off) (\d+),(\d+) through (\d+),(\d+)')
+  >> partsToTuple
 
-#parseLine = captures(r'(toggle|turn on|turn off) (\d+),(\d+) through (\d+),(\d+)')
-#  >> partsToTuple
+gridA = [0] * (1000 * 1000)
+gridB = [0] * (1000 * 1000)
 
-grid = [[0] * 1000] * 1000
 for line in lines(input):
   (action, x1, y1, x2, y2) = parseLine(line)
-  for col in x1..x2:
-    for row in y1..y2:
+  for x in x1..x2:
+    for y in y1..y2:
+      idx = y*1000 + x
       if action == 'turn on':
-        grid[row][col] = 1
+        gridA[idx] = 1
+        gridB[idx] += 1
       elif action == 'turn off':
-        grid[row][col] = 0
+        gridA[idx] = 0
+        gridB[idx] = max([gridB[idx] - 1, 0])
       else:
-        grid[row][col] ^= 1
+        gridA[idx] ^= 1
+        gridB[idx] += 2
 
-lightsOn = map(sum, grid)
-print(lightsOn)
+a = sum(gridA)
+print('A: {}' % a)
+assert a == 400410, 'A = 400410'
+
+b = sum(gridB)
+print('B: {}' % b)
+assert b == 15343601, 'B = 15343601'

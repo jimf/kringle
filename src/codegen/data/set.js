@@ -1,4 +1,4 @@
-exports.requires = []
+exports.requires = ['helpers/$has']
 
 exports.definition = `
 function $KringleSet() {
@@ -20,7 +20,7 @@ $KringleSet.prototype._keyFor = function _keyFor (value) {
 }
 
 $KringleSet.prototype.has = function has (value) {
-  return Object.prototype.hasOwnProperty.call(this.members, this._keyFor(value))
+  return $has(this.members, this._keyFor(value))
 }
 
 $KringleSet.prototype.add = function add (value) {
@@ -41,6 +41,6 @@ $KringleSet.prototype[Symbol.iterator] = function* () {
 }
 
 $KringleSet.prototype.toString = function toString () {
-  const s = '{ ' + Object.values(this.members).map(String).join(', ') + ' }'
-  return s === '{ }' ? Ø : s
+  const s = '{' + Object.values(this.members).map(String).join(', ') + '}'
+  return s === '{}' ? 'Ø' : s
 }`
