@@ -94,13 +94,23 @@ ${errorContext}
         items
       }
     } else if (match('LBrace')) {
-      if (match('RBrace')) {
-        return {
-          type: 'Dict',
-          pairs: []
-        }
+      const pairs = []
+      do {
+        if (check('RBrace')) { break }
+        const key = expression()
+        expect(match('Colon'), '":"')
+        const value = expression()
+        pairs.push({
+          type: 'Pair',
+          key,
+          value
+        })
+      } while (match('Comma'))
+      expect(match('RBrace'), 'a closing "}"')
+      return {
+        type: 'Dict',
+        pairs
       }
-      expect(false, 'non-empty brances not implemented')
     } else if (match('Theta')) {
       return {
         type: 'Set',
@@ -367,11 +377,28 @@ ${errorContext}
     return expr
   }
 
+  function conditional () {
+    if (match('ReservedWord', 'if')) {
+      const condition = expression()
+      expect(match('ReservedWord', 'then'), 'a "then" clause')
+      const expr1 = expression()
+      expect(match('ReservedWord', 'else'), 'an "else" clause')
+      const expr2 = expression()
+      return {
+        type: 'IfExpr',
+        condition,
+        expr1,
+        expr2
+      }
+    }
+    return range()
+  }
+
   function assignment () {
-    let expr = range()
+    let expr = conditional()
     if (match('PlusEq') || match('QuestionEq') || match('CaretEq')) {
       const op = previous()
-      const right = range()
+      const right = conditional()
       return {
         type: 'BinaryOp',
         operator: op,
@@ -381,7 +408,7 @@ ${errorContext}
     }
     while (match('Eq')) {
       const op = previous()
-      let right = range()
+      let right = conditional()
       if (right.type === 'ExprList') {
         right = exprListToTuple(right)
       }
@@ -396,31 +423,18 @@ ${errorContext}
   }
 
   function expression (skipSemi) {
-    if (match('ReservedWord', 'if')) {
-      const condition = expression()
-      expect(match('ReservedWord', 'then'), 'a "then" clause')
-      const expr1 = expression()
-      expect(match('ReservedWord', 'else'), 'an "else" clause')
-      const expr2 = expression()
-      return {
-        type: 'IfExpr',
-        condition,
-        expr1,
-        expr2
-      }
-    }
     return assignment()
   }
 
   function expressionList () {
-    const exprs = [range()]
+    const exprs = [conditional()]
     if (match('Comma')) {
       const { line } = previous()
       do {
         if (isAtEnd() || check('RParen') || check('RBracket') || check('RBrace') || peek().line > line) {
           break
         }
-        exprs.push(range())
+        exprs.push(conditional())
       } while (match('Comma'))
     }
     return exprs
@@ -465,6 +479,15 @@ ${errorContext}
         type: 'ForStmt',
         variables,
         items,
+        body
+      }
+    } else if (match('ReservedWord', 'while')) {
+      const condition = expression()
+      expect(match('Colon'), '":"')
+      const body = statements()
+      return {
+        type: 'WhileStmt',
+        condition,
         body
       }
     } else if (match('ReservedWord', 'if')) {

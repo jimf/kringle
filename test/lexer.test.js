@@ -125,7 +125,8 @@ describe('Lexer', () => {
   it('should tokenize strings', () => {
     const cases = [
       { lexeme: "'hello world'", expectedValue: 'hello world' },
-      { lexeme: "'\\n\\012\\x0a'", expectedValue: '\n\n\n' }
+      { lexeme: "'\\n\\012\\x0a'", expectedValue: '\n\n\n' },
+      { lexeme: `"""\nLine one\nLine two\n\\012\n"""`, expectedValue: 'Line one\nLine two\n\\012' }
     ]
     cases.forEach(({ lexeme, expectedType, expectedValue }) => {
       expect(tokenize(lexeme)).toEqual([{
@@ -141,7 +142,7 @@ describe('Lexer', () => {
 
   it('should tokenize reserved words', () => {
     const reserved = [
-      'assert', 'break', 'case', 'elif', 'else', 'fn', 'for', 'if', 'in', 'notin', 'return', 'then'
+      'assert', 'break', 'case', 'elif', 'else', 'fn', 'for', 'if', 'in', 'notin', 'return', 'then', 'while'
     ]
     reserved.forEach((word) => {
       expect(tokenize(word)).toEqual([{

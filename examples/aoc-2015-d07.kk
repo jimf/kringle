@@ -348,43 +348,40 @@ for line in lines(input):
   connections[outputWire] = split(' ', connection)
 
 fn getWireSignal(wire):
-  print(wire)
-  assert wire?, 'wire is defined'
   if isDigits(wire) || isInteger(wire):
-    print('is digits: {}' % wire)
     return int(wire)
 
-  result = null
   if wire notin results:
+    result = null
     connection = connections[wire]
-    if len(connection) == 1:
+    connLen = len(connection)
+
+    if connLen == 1:
       result = getWireSignal(connection[0])
+    elif connLen == 2:
+      result = getWireSignal(connection[1]) ^ 0xffff
     else:
-      op = connection[-2]
+      (l, op, r) = connection
+      l = getWireSignal(l)
+      r = getWireSignal(r)
       if op == 'AND':
-        assert connection[0]?
-        assert connection[2]?
-        result = getWireSignal(connection[0]) & getWireSignal(connection[2])
+        result = l & r
       elif op == 'OR':
-        assert connection[0]?
-        assert connection[2]?
-        result = getWireSignal(connection[0]) | getWireSignal(connection[2])
-      elif op == 'NOT':
-        assert connection[1]?
-        #result = ~getWireSignal(connection[1]) & 0xffff
-        result = getWireSignal(connection[1]) ^ 0xffff
+        result = l | r
       elif op == 'RSHIFT':
-        assert connection[0]?
-        assert connection[2]?
-        result = getWireSignal(connection[0]) >>> getWireSignal(connection[2])
+        result = l >>> r
       elif op == 'LSHIFT':
-        assert connection[0]?
-        assert connection[2]?
-        result = getWireSignal(connection[0]) <<< getWireSignal(connection[2])
-    assert result?, 'result is defined'
+        result = l <<< r
+
     results[wire] = result
 
   results[wire]
 
 a = getWireSignal('a')
 print('A: {}' % a)
+assert a == 46065, 'A = 46065'
+
+results = {'b': a}
+b = getWireSignal('a')
+print('B: {}' % b)
+assert b == 14134, 'B = 14134'

@@ -4,7 +4,7 @@ exports.definition = `
 const $subscript = (xs, start, end) => {
   if (start < 0) { start = xs.length + start }
   if (end == null) {
-    if (Array.isArray(xs)) {
+    if (Array.isArray(xs) || typeof xs === 'string') {
       return xs[start]
     } else if (xs.type === 'KringleDict') {
       return xs.get(start)

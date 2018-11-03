@@ -173,6 +173,13 @@ for (let ${init} of ${node.items.map(codegen).join(', ')}) {
   ${node.body.map(codegen).join(';\n  ')}
 }`
     }
+    case 'WhileStmt': {
+      return `
+while (${codegen(node.condition)}) {
+  ${node.body.map(codegen).join(';\n  ')}
+}
+`
+    }
     case 'IfStmt': {
       const condition = `if (${codegen(node.condition)}) {\n`
       const ifBody = node.ifBody.map(e => `  ${codegen(e)}`).join('\n')
@@ -274,10 +281,12 @@ $setSubscript($tmp${id}, ${codegen(node.left).slice(11, -1)})
     case 'LessLessLess': return '<<'
 
     // Data structures
-    case 'Dict': return `$KringleDict()`
+    case 'Dict': return `$KringleDict([${node.pairs.map(codegen).join(', ')}])`
     case 'List': return `[${node.items.map(codegen).join(', ')}]`
     case 'Set': return `$KringleSet(${node.members.map(codegen).join(', ')})`
     case 'Tuple': return `$KringleTuple([${node.items.map(codegen).join(', ')}])`
+
+    case 'Pair': return `[${codegen(node.key)}, ${codegen(node.value)}]`
 
     // Primaries
     case 'Identifier': return node.isInitialization ? `let ${node.lexeme}` : node.lexeme

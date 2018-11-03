@@ -13,7 +13,7 @@ function createScope (parent) {
   function lookup (symbol) {
     if (has(symbol)) {
       return symbols[symbol]
-    } else if (parent && parent.has(symbol)) {
+    } else if (parent) {
       return parent.lookup(symbol)
     }
   }

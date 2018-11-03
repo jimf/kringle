@@ -1,12 +1,15 @@
 exports.requires = ['helpers/$has']
 
 exports.definition = `
-function $KringleDict() {
+function $KringleDict(pairs) {
   if (!(this instanceof $KringleDict)) {
-    return new $KringleDict()
+    return new $KringleDict(pairs)
   }
   this.type = 'KringleDict'
   this.members = {}
+  pairs.forEach(([key, value]) => {
+    this.set(key, value)
+  })
 }
 
 $KringleDict.prototype._keyFor = function _keyFor (keyValue) {

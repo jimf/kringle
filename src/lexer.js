@@ -12,7 +12,8 @@ const RESERVED_WORDS = [
   'in',
   'notin',
   'return',
-  'then'
+  'then',
+  'while'
 ].reduce((acc, word) => {
   acc[word] = true
   return acc
@@ -296,20 +297,28 @@ ${errorContext}
     // TODO: handle whitespace
     const startLine = line
     const startCol = col - 3
-    const token = scanString('"')
-    if (!(match('"') && match('"'))) {
-      kringleScanError()
+    let x = null
+    let y = null
+    let z = null
+    while (true) {
+      if (isAtEnd() || (x === '"' && y === '"' && z === '"' && peek !== '"')) {
+        break
+      }
+      const ch = read()
+      if (ch === '\n') { carriageReturn() }
+      x = y
+      y = z
+      z = ch
     }
-    while (match('"')) {
-      token.value += '"'
-    }
-    const closeQuotes = createToken('')
+    const token = createToken('String', (t) => {
+      let value = t.slice(3, -3)
+      if (value.startsWith('\n') && value.endsWith('\n')) {
+        value = value.slice(1, -1)
+      }
+      return value
+    })
     token.line = startLine
     token.column = startCol
-    token.lexeme += closeQuotes.lexeme
-    if (token.value.startsWith('\n') && token.value.endsWith('\n')) {
-      token.value = token.value.slice(1, -1)
-    }
     return token
   }
 
