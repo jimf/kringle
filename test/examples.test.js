@@ -13,7 +13,9 @@ const examples = [
   'aoc-2015-d04',
   'aoc-2015-d05',
   'aoc-2015-d06', // NOTE: requires 3-5 sec
-  'aoc-2015-d07'
+  'aoc-2015-d07',
+  'aoc-2015-d08',
+  'aoc-2015-d09'
 ]
 
 describe('Examples', () => {

@@ -200,6 +200,7 @@ while (${codegen(node.condition)}) {
     case 'BreakStmt': return 'break'
 
     case 'ExprList': return node.expressions.map(codegen).join(', ')
+    case 'FnExpr': return `(${node.params.map(codegen).join(', ')}) => ${codegen(node.body)}`
     case 'IfExpr': return `(${codegen(node.condition)} ? ${codegen(node.expr1)} : ${codegen(node.expr2)})`
     case 'Subscript': {
       return `$subscript(${codegen(node.callee)}, ${codegen(node.value)})`

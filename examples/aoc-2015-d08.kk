@@ -303,8 +303,8 @@ input="""
 
 fn unquotedLen(line):
   count = 0
-  end = len(line) - 1
   i = 1
+  end = len(line) - 1 # Skip surrounding quotes
   while i < end:
     count += 1
     if line[i] == r'\':
@@ -316,6 +316,8 @@ fn quotedLen(line):
   chars(line)
     |> map(fn (c): if c == '"' || c == '\\' then 2 else 1)
     |> sum
+    |> inc
+    |> inc # Inc twice to account for surrounding quotes
 
 a = 0
 b = 0
@@ -323,9 +325,10 @@ b = 0
 for line in lines(input):
   lineLen = len(line)
   a += lineLen - unquotedLen(line)
-  b += quotedLen - lineLen
+  b += quotedLen(line) - lineLen
 
 print('A: {}' % a)
 assert a == 1342, 'A = 1342'
 
 print('B: {}' % b)
+assert b == 2074, 'B = 2074'

@@ -4,6 +4,8 @@ const builtins = {
   chars: require('./chars'),
   enumerate: require('./enumerate'),
   findall: require('./findall'),
+  groupby: require('./groupby'),
+  identity: require('./identity'),
   inc: require('./inc'),
   indexWhere: require('./index_where'),
   Inf: require('./inf'),
@@ -18,12 +20,15 @@ const builtins = {
   md5: require('./md5'),
   max: require('./max'),
   min: require('./min'),
+  permutations: require('./permutations'),
   print: require('./print'),
   range: require('./range'),
+  reduce: require('./reduce'),
   scanl: require('./scanl'),
   split: require('./split'),
   str: require('./str'),
-  sum: require('./sum')
+  sum: require('./sum'),
+  zip: require('./zip')
 }
 
 const builtinsIdx = Object.keys(builtins).reduce((acc, name) => {

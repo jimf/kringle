@@ -390,6 +390,23 @@ ${errorContext}
         expr1,
         expr2
       }
+    } else if (match('ReservedWord', 'fn')) {
+      const params = []
+      expect(match('LParen'), 'a function parameter list')
+      if (!match('RParen')) {
+        do {
+          expect(match('Identifier'), 'a parameter name')
+          params.push(previous())
+        } while (match('Comma'))
+        expect(match('RParen'), 'a closing ")"')
+      }
+      expect(match('Colon'), '":" after function parameter list')
+      const body = expression()
+      return {
+        type: 'FnExpr',
+        params,
+        body
+      }
     }
     return range()
   }

@@ -2,6 +2,12 @@ exports.requires = ['helpers/$concat', 'helpers/$fold', 'helpers/$len']
 
 exports.definition = `
 let sum = xs => {
-  if ($len(xs) === 0) { return 0 }
-  return $fold($concat, xs)
+  try {
+    return $fold($concat, xs)
+  } catch (e) {
+    if (e.message === 'Cannot fold an empty collection') {
+      return 0
+    }
+    throw e
+  }
 }`

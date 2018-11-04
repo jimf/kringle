@@ -1,3 +1,3 @@
-exports.requires = []
+exports.requires = ['helpers/$fold']
 exports.definition = `
-let min = xs => xs.reduce((x, y) => Math.min(x, y))`
+let min = xs => $fold(Math.min, xs)`

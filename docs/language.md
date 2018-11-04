@@ -184,6 +184,23 @@ Returns all substrings within the given string that match the given pattern.
 findall('[aeiou]', 'hello world') # => ['e', 'o', 'o']
 ```
 
+### groupby(func, iterable)
+
+Groups members of the iterable based on the given function.
+
+```
+groupby(identity, 'AABBC') # => [(2, ['A', 'A']), (2, ['B', 'B']), (1, ['C'])]
+```
+
+### identity(x)
+
+Identity function.
+
+```
+identity(42)   # => 42
+identity('hi') # => 'hi'
+```
+
 ### inc(n)
 
 Increment a given number by 1.
@@ -279,6 +296,14 @@ Generate a list of numbers.
 ```
 range(0, 5, 1) # => [0, 1, 2, 3, 4, 5]
 range(0, 5, 2) # => [0, 2, 4]
+```
+
+### reduce(func, initial, list)
+
+Reduce a list.
+
+```
+reduce(add, 0, [1, 2, 3, 4, 5]) # => 15
 ```
 
 ### scanl(func, initial, list)

@@ -6,7 +6,7 @@ const $subscript = (xs, start, end) => {
   if (end == null) {
     if (Array.isArray(xs) || typeof xs === 'string') {
       return xs[start]
-    } else if (xs.type === 'KringleDict') {
+    } else if (xs.type === 'KringleDict' || xs.type === 'KringleTuple') {
       return xs.get(start)
     }
     end = start + 1

@@ -35,7 +35,7 @@ $KringleSet.prototype.size = function size () {
 }
 
 $KringleSet.prototype[Symbol.iterator] = function* () {
-  for (const val in Object.values(this.members)) {
+  for (const val of Object.values(this.members)) {
     yield val
   }
 }
